@@ -5,7 +5,12 @@
 #pragma once
 
 #include "Common/FileUtil.h"
+#include "Common/Thread.h"
+#include "Common/FifoQueue.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+
+using WII_IPC_HLE_Interface::ECommandType;
 
 std::string HLE_IPC_BuildFilename(std::string _pFilename, int _size);
 void HLE_IPC_CreateVirtualFATFilesystem();
@@ -24,10 +29,20 @@ public:
 	bool Write(u32 _CommandAddress);
 	bool IOCtl(u32 _CommandAddress);
 	void DoState(PointerWrap &p);
+	void FileProcessor();
 
 	File::IOFile OpenFile();
 
 private:
+	
+	void EnqueueReply(u32 CommandAddress, s32 ReturnValue);
+	
+	typedef struct
+	{
+		u32 command_address;
+		ECommandType type;
+	} FileCommand;
+	
 	enum
 	{
 		ISFS_OPEN_READ  = 1,
@@ -65,4 +80,11 @@ private:
 	u32 m_SeekPos;
 
 	std::string m_filepath;
+	
+	bool processing;
+	std::thread thread;
+	std::mutex file_mutex;
+	
+	Common::Event file_event;
+	Common::FifoQueue<FileCommand> file_queue;
 };

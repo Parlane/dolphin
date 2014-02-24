@@ -248,19 +248,6 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 		return NULL;
 }
 
-// This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
-IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
-{
-	// scan device name and create the right one
-	IWII_IPC_HLE_Device* pDevice = NULL;
-
-	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", _rDeviceName.c_str());
-	pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
-
-	return pDevice;
-}
-
-
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(s_reply_queue);
@@ -415,7 +402,8 @@ void ExecuteCommand(u32 _Address)
 			}
 			else
 			{
-				pDevice = CreateFileIO(DeviceID, DeviceName);
+				INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", DeviceName.c_str());
+				pDevice = new CWII_IPC_HLE_Device_FileIO(DeviceID, DeviceName);
 				CmdSuccess = pDevice->Open(_Address, Mode);
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
@@ -445,8 +433,7 @@ void ExecuteCommand(u32 _Address)
 		{
 			CmdSuccess = pDevice->Close(_Address);
 
-			u32 j;
-			for (j=0; j<ES_MAX_COUNT; j++)
+			for (u32 j = 0; j<ES_MAX_COUNT; j++)
 			{
 				if (es_handles[j] == g_FdMap[DeviceID])
 				{
