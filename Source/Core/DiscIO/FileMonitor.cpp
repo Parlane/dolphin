@@ -32,23 +32,21 @@ bool FileAccess = true;
 // Filtered files
 bool ShowSound(std::string FileName)
 {
-	std::string Ending;
-	SplitPath(FileName, NULL, NULL, &Ending);
-	std::transform(Ending.begin(),Ending.end(),Ending.begin(),::tolower);
+	std::string extension;
+	SplitPath(FileName, NULL, NULL, &extension);
+	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-	if (
-		   (Ending == ".adp") // 1080 Avalanche, Crash Bandicoot, etc
-		|| (Ending == ".afc") // Zelda WW
-		|| (Ending == ".ast") // Zelda TP, Mario Kart
-		|| (Ending == ".dsp") // Metroid Prime
-		|| (Ending == ".hps") // SSB Melee
+	std::vector<std::string> extensions = {
+		".adp",   // 1080 Avalanche, Crash Bandicoot, etc
+		".afc",   // Zelda WW
+		".ast",   // Zelda TP, Mario Kart
+		".dsp",   // Metroid Prime
+		".hps",   // SSB Melee
+		".brstm", // Wii Sports, Wario Land, etc.
+		".sad"    // Disaster 
+	};
 
-		|| (Ending == ".brstm") // Wii Sports, Wario Land, etc
-		|| (Ending == ".sad") // Disaster
-		)
-		return true;
-
-	return false;
+	return std::find(extensions.begin(), extensions.end(), extension) != extensions.end();
 }
 
 
